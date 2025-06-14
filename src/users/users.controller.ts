@@ -7,11 +7,7 @@ import { CreateUserDto } from './dtos/create_user.dto';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Post()
-  async createUser(@Body() createUserDto: CreateUserDto): Promise<User> {
-    const user = await this.usersService.createUser(createUserDto);
-    return user;
-  }
+  
 
 
   @Get(":username")
