@@ -6,7 +6,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 
 type SignInData = {
-  userId: number;
+  id: number;
   userName: string;
 };
 
@@ -32,21 +32,19 @@ export class AuthService {
 
   async validateUser(
     userName: string,
-    password: string,
+    userPassword: string,
   ): Promise<SignInData | null> {
     const user = await this.usersService.findUserByUsername(userName);
     if (!user) {
       return null; // User not found
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = await bcrypt.compare(userPassword, user.password);
     if (!isMatch) {
       return null; // Password does not match
     }
-    return {
-      userId: user.id,
-      userName: user.userName,
-    };
+    const {password , ...result} = user
+    return result as SignInData; // Return user data without password
   }
 
   async signIn(SignInData: SignInDto): Promise<AuthResult> {
@@ -58,14 +56,14 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const payload = { sub: user.userId, userName: user.userName };
+    const payload = { sub: user.id, userName: user.userName };
     const token = await this.jwtService.signAsync(payload);
     const refreshToken = this.jwtService.sign(payload, {
       secret: this.configService.get('JWT_REFRESH_SECRET'),
       expiresIn: '7d',
     });
     return {
-      userId: user.userId,
+      userId: user.id,
       userName: user.userName,
       token: token,
       refreshToken: refreshToken,
