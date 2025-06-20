@@ -4,6 +4,7 @@ import * as bcrypt from 'bcrypt';
 import { SignInDto } from './dtos/sign_in.dto';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { User } from 'src/users/users.entity';
 
 type SignInData = {
   id: number;
@@ -19,7 +20,6 @@ type AuthResult = {
   userId: number;
   userName: string;
   token: string;
-  refreshToken : string;
 };
 
 @Injectable()
@@ -47,28 +47,16 @@ export class AuthService {
     return result as SignInData; // Return user data without password
   }
 
-  async signIn(SignInData: SignInDto): Promise<AuthResult> {
-    const user = await this.validateUser(
-      SignInData.userName,
-      SignInData.password,
-    );
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
+  async signIn(user : User): Promise<AuthResult> {
     const payload = { sub: user.id, userName: user.userName };
     const token = await this.jwtService.signAsync(payload);
-    const refreshToken = this.jwtService.sign(payload, {
-      secret: this.configService.get('JWT_REFRESH_SECRET'),
-      expiresIn: '7d',
-    });
     return {
       userId: user.id,
       userName: user.userName,
       token: token,
-      refreshToken: refreshToken,
     } as AuthResult;
   }
+
   async signUp(createUserDto: SignInDto): Promise<SignUpResult> {
     const user = await this.usersService.createUser(createUserDto);
     return {

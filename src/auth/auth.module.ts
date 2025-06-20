@@ -4,9 +4,10 @@ import { AuthController } from './auth.controller';
 import { UsersModule } from 'src/users/users.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { LocalStrategy } from './local.strategy';
 
 @Module({
-  providers: [AuthService],
+  providers: [AuthService , LocalStrategy],
   controllers: [AuthController],
   imports: [UsersModule , 
     JwtModule.registerAsync({
@@ -17,7 +18,8 @@ import { ConfigService } from '@nestjs/config';
         signOptions: { expiresIn: '1h' }, // Token expiration time,
         
     })
-    })
+    }) , 
+   
 
   ],
 })
